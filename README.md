@@ -1,8 +1,8 @@
 # Serial Frame Pipeline
 
-> Personal learning project featuring a serial binary protocol frame (0xAA | LEN | payload | CHK) pipeline with threads and communication between processes.
+> Personal learning project featuring a serial binary protocol frame `0xAA | LEN | payload | CHK` pipeline with threads and communication between processes.
 
-**Status:** `under development` -- Freshly created repository (Nov 20, 2026).  
+**Status:** `under development`  
 **Author:** Jorge Rodríguez Rubio
 
 ---
@@ -36,13 +36,24 @@ cmake --build build
 ./build/frame_app
 ```
 
-## 4. Current status & next steps
+## 4. Protocol
 
-**Working (Nov 20, 2026)**
-- Test program compiles and runs properly
+Frames have the following structure:  
+- `0xAA`: start byte.
+- `LEN`: payload length.
+- `payload`: data.
+- `CHK`: XOR of LEN and payload.
+
+See the [protocol specification](docs/protocol.md) for the parser state machine and known limitations.
+
+## 5. Current status & next steps
+
+**Working (Nov 21, 2026)**
+- Test program compiles and runs properly.
+- Protocol and state machine are documented.
 
 **Future steps**
-- Create a FrameParser class to read binary protocol frames (0xAA | LEN | payload | CHK). 
+- Create a FrameParser class to read binary protocol frames `0xAA | LEN | payload | CHK`. 
 - Implement a circular buffer and CI.
 - Thread-safe queue between two threads (producer/consumer).
 - Latency measurement.
