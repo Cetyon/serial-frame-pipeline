@@ -4,22 +4,24 @@
 
 > `0xAA | LEN | payload | CHK`
 
-- `MAX_LEN`= 64
+- `kMaxLen`= 32
 - `LEN=0` is considered a heartbeat --> `CHK == 0`
 - `CHK` is the XOR of the LEN and payload
 
 ## State machine
 
-| State | Input / condition | Action | Next state |
-|---|---|---|---|
-| R_HDR | b == 0xAA | — | R_LEN |
-| R_HDR | b != 0xAA | — | R_HDR |
-| R_LEN | b > MAX_LEN | — | R_HDR |
-| R_LEN | 0 < b <= MAX_LEN | chk = b / idx = 0 / len = b | R_PAYLOAD |
-| R_LEN | b == 0 | chk = b / idx = 0 / len = b | R_CHK |
-| R_PAYLOAD | Any byte | chk ^= b / data[idx++] = b | (idx == len) ? R_CHK : R_PAYLOAD |
-| R_CHK | b == chk | emit Frame{len, data} | R_HDR |
-| R_CHK | b != chk | discard frame | R_HDR |
+| State | Input / condition | Action | Next state | Return |
+|---|---|---|---| --- |
+| WaitHeader | b == 0xAA | — | ReadLen | Incomplete |
+| WaitHeader | b != 0xAA | — | WaitHeader | Incomplete |
+| ReadLen | b > kMaxLen | — | WaitHeader | BadLen |
+| ReadLen | 0 < b <= kMaxLen | chk = b / idx = 0 / len = b | ReadPayload | Incomplete |
+| ReadLen | b == 0 | — | CheckHeartbeat | Incomplete |
+| CheckHeartbeat | b == 0 | — |  WaitHeader | Heartbeat |
+| CheckHeartbeat | b != 0 | — |  WaitHeader | BadChecksum |
+| ReadPayload | Any byte | chk ^= b / data[idx++] = b | (idx == len) ? ReadChecksum : ReadPayload | Incomplete |
+| ReadChecksum | b == chk | store in lastFrame | WaitHeader | Ready |
+| ReadChecksum | b != chk | discard frame | WaitHeader | BadChecksum |
 
 
 ## Known limitations 
